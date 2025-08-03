@@ -1,29 +1,21 @@
-// Starts multiple device actors and subscribes to state changes:
-// - Subscribing here handles external side effects (e.g. logging, hardware, notifications)
-// - Logging is a good example: log inside the machine for internal behaviour (e.g. entering 'running'),
-//   and subscribe outside the machine (like here) to observe state changes and react to them
-// - Keeps the machine focused on intent, and external code focused on consequences
-// - Returns an actor instance so it can be managed or referenced elsewhere
-
 import { createActor } from 'xstate';
 import { deviceMachine } from './deviceMachine';
+import { allDevices } from '../../../config/layout.config'; // adjust path as needed
 
-export function initDeviceActors(count = 10) {
-	const actors = [];
+export function initDeviceActors() {
+	const actors: Record<string, ReturnType<typeof createActor>> = {};
 
-	for (let i = 1; i <= count; i++) {
-		const machineId = `device-${i}`;
-
+	for (const device of allDevices) {
 		const actor = createActor(deviceMachine, {
-			input: { machineId }
+			input: { machineId: device.id }
 		});
 
 		actor.subscribe((state) => {
-			console.log(`[${machineId}] state: ${state.value}`);
+			console.log(`[${device.id}] state: ${state.value}`);
 		});
 
 		actor.start();
-		actors.push(actor);
+		actors[device.id] = actor;
 	}
 
 	return actors;

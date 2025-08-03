@@ -1,14 +1,14 @@
 // Entry point: starts Express server and all device actors
 
 import express from 'express';
-import { ENCLOSURE_CONFIG } from '../../config/enclosure.config';
+import { layoutConfig } from '../../config/layout.config';
 import { initDeviceActors } from './machines/initDeviceActors';
 
 const app = express();
 const port = 3000;
 
 // Create device actors and store them by ID
-const deviceActorMap = initDeviceActors(ENCLOSURE_CONFIG.devicesPerEnclosure);
+const deviceActorMap = initDeviceActors();
 
 app.use(express.json());
 
