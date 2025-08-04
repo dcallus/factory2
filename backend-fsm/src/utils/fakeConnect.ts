@@ -6,7 +6,7 @@ export const connectActor = fromPromise(
     await new Promise((resolve) => setTimeout(resolve, 200));
     
     // 10% success rate
-    const success = Math.random() < 0.1;
+    const success = Math.random() < 0.5;
     
     if (success) {
       return 'connected';

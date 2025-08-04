@@ -1,23 +1,6 @@
-import { createMachine, assign, fromPromise } from 'xstate';
-
-/* ──────────────── Services ──────────────── */
-const connectService = fromPromise(async ({ input }: { input: string }) => {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // 30% success rate
-  if (Math.random() < 0.3) {
-    return 'connected';
-  }
-  
-  throw new Error(`Connection failed for ${input}`);
-});
-
-const processingService = fromPromise(async ({ input }: { input: string }) => {
-  console.log(`⚙️ Starting processing on ${input}...`);
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  console.log(`✅ Processing completed on ${input}`);
-  return 'processed';
-});
+import { createMachine, assign } from 'xstate';
+import { connectActor } from '../utils/fakeConnect';
+import { processingActor } from '../utils/fakeProcessing';
 
 /* ──────────────── Types ──────────────── */
 type DeviceContext = {
@@ -45,7 +28,7 @@ export const deviceMachine = createMachine({
   states: {
     connecting: {
       invoke: {
-        src: connectService,
+        src: connectActor,
         input: ({ context }) => context.deviceId,
         
         onDone: {
@@ -77,7 +60,7 @@ export const deviceMachine = createMachine({
 
     processing: {
       invoke: {
-        src: processingService,
+        src: processingActor,
         input: ({ context }) => context.deviceId,
         onDone: { target: 'complete' },
         onError: { target: 'failed' }
