@@ -28,7 +28,7 @@ export const deviceMachine = setup({
     canRetry: ({ context }) => context.retryCount < context.maxRetries,
   },
 }).createMachine({
-  /** @xstate-layout N4IgpgJg5mDOIC5QTANwJYGMwDpMHsA7QsTAF3UKgGIIjdLV8BrXFDbPIk8yqBRvkwBDCkQDaABgC6U6YlAAHfLHRjCCkAA9EAJgDsARhySAzLsOHdADgBsu05ICc+2wBoQAT0SHT1nACsAXa++gAszpJWAL7RHuxYuATEpBRU1GAATpn4mTiKADaiAGa5ALY4CZzJPGn8giLqcnKayqrqmjoIBsZmFlZ2Ds6uHt7d5jhh1pIBupLWRk7mTrqx8WiJOJlgZJmefNRasGSiuMLFZFkAFIaSdwCUtBuc27v7VC1IIG1q6ESdeiMJnMlhs9kcLncXh81gCgUMTgCtn0jlsYUM+kktjWICquFeewORxOlxw50umRud0kjzxWx2hI+hnkXx+HS+XRRkkmZmsESctlMvgCplGejCThw1jmYQCLic1j8hjCOLpihy2FgqnSdBIOEErEqz1w6qEcG19UITEaf0IzRkrRUv3+HMQXJ5fn5guFouhCFucP0S2cBhFpkxrlVxvyGvNByyOTyhRK5SNHBNsa1fAEVqEolt9pZSid7NAnMcHr5zm9phFYv9sxw+gCETC3usHds9licRAhHwKHgXzxjvatoBCAAtFCxpO4U4F4ul0vTFH01wUrwqKPnRpXQgwrp63N-LoRV3IcE-AF9GvNgT3lAd6XtIgRfp4XZZU5ZUFEcepkCFtZgVH97EMFs704U1NQtZ9x33CV-AXMJTHRJFbD6LF60sUwcERAwVn0awXEkGxDCgpJ8DKQodjAeCXTLRABVsSYFmsAZJAiZEAnrDicEMBZHAGMIwiDINKJwYphHQApIAYvcmIQFi2OIzjuObY9bgE2EnCsXRZUw8IAh7aIgA */
+  /** @xstate-layout N4IgpgJg5mDOIC5QTANwJYGMwDpMHsA7QsTAF3UKgGIIjdLV8BrXFDbPIk8yqBRvkwBDCkQDaABgC6U6YlAAHfLHRjCCkAA9EAJgAcARhwB2Q5IDMkk7pP6AnAFYLhgDQgAnokOH7Oe-r6ACz6FiYWQRZOtgC+Me7sWLgExKQUVNRgAE5Z+Fk4igA2ogBmeQC2OImcKTzp-IIi6nJymsqq6po6CAbGZpbWtg7Obp6IQQY4joYAbIaOkkELQTMmjnEJaEk4WWBkWR581FqwZKK4wiVk2QAU5pKSAJS0W5y7+4dUrUgg7WroRC6eiMpnMVhsdicLncXgQFhBjkRukk9kWjiMsyCGxA1Vw7wORxOZ2uOEu1yydweTxeHDxewJX0M8h+f06P26JiCxhmK10MwM9k5wUcMMQ8L8MzCEX0ugsukcQRRWPiONeuEUuWwsFUGToJBwglYVTVBU1cB1DUITCaAMILRkbRU-0B7MQnO5vP5DiFS1FCHMjlM9isM0RLgsobs2NxpqE5qO2Vy+SKpQqxtpsa1FoEVqEolt9uZSidbNAHK5OB5-K9gpCvrG-sculMCoeM2DM0kulm0ZNJWE6EKkGo5WEhAArsJCgAlekeb7Fjq2oEIGXGexcpb2eUDEwzP184zWFZWVGSxbzOIqwj4FDwH64x1Ll1lxAAWn3DY-vYztTSfCfZ0NFdBAJj9QxdGbYMgiWeVg0kfQTCjFUY3xT4oEA0ttEQBUTH8RDJBmfQFUQ+FRlheF9BwMJDEVQwwhWfQlR-bYNTjbUAJZEtlxAhY-CiRYLAVXR7H5Qx9D9JxqJldsAlsSUghMFianwcoij2MBMJ418EEFGZqPPUT6PRAw-RBcSbCMfkVkkJtlNwftB0gLSX2w3S9wM085iEmUJIbWU8NE4YYIjGwXHWK8gA */
   id: "device",
 
   initial: "connecting",
@@ -85,6 +85,13 @@ export const deviceMachine = setup({
 
     failed: {
       entry: "logFailed",
-    },
+
+      on: {
+        manualRetry: {
+          target: "connecting",
+          reenter: true
+        }
+      }
+    }
   },
 });
