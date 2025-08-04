@@ -17,6 +17,10 @@ export const deviceMachine = setup({
       retryCount: ({ context }) => context.retryCount + 1,
     }),
 
+    resetRetryCount: assign({
+      retryCount: 0,
+    }),
+
     logComplete: ({ context }) =>
       console.log(`🏁 Device ${context.deviceId} completed successfully!`),
 
@@ -28,7 +32,7 @@ export const deviceMachine = setup({
     canRetry: ({ context }) => context.retryCount < context.maxRetries,
   },
 }).createMachine({
-  /** @xstate-layout N4IgpgJg5mDOIC5QTANwJYGMwDpMHsA7QsTAF3UKgGIIjdLV8BrXFDbPIk8yqBRvkwBDCkQDaABgC6U6YlAAHfLHRjCCkAA9EAJgAcARhwB2Q5IDMkk7pP6AnAFYLhgDQgAnokOH7Oe-r6ACz6FiYWQRZOtgC+Me7sWLgExKQUVNRgAE5Z+Fk4igA2ogBmeQC2OImcKTzp-IIi6nJymsqq6po6CAbGZpbWtg7Obp6IQQY4joYAbIaOkkELQTMmjnEJaEk4WWBkWR581FqwZKK4wiVk2QAU5pKSAJS0W5y7+4dUrUgg7WroRC6eiMpnMVhsdicLncXgQFhBjkRukk9kWjiMsyCGxA1Vw7wORxOZ2uOEu1yydweTxeHDxewJX0M8h+f06P26JiCxhmK10MwM9k5wUcMMQ8L8MzCEX0ugsukcQRRWPiONeuEUuWwsFUGToJBwglYVTVBU1cB1DUITCaAMILRkbRU-0B7MQnO5vP5DiFS1FCHMjlM9isM0RLgsobs2NxpqE5qO2Vy+SKpQqxtpsa1FoEVqEolt9uZSidbNAHK5OB5-K9gpCvrG-sculMCoeM2DM0kulm0ZNJWE6EKkGo5WEhAArsJCgAlekeb7Fjq2oEIGXGexcpb2eUDEwzP184zWFZWVGSxbzOIqwj4FDwH64x1Ll1lxAAWn3DY-vYztTSfCfZ0NFdBAJj9QxdGbYMgiWeVg0kfQTCjFUY3xT4oEA0ttEQBUTH8RDJBmfQFUQ+FRlheF9BwMJDEVQwwhWfQlR-bYNTjbUAJZEtlxAhY-CiRYLAVXR7H5Qx9D9JxqJldsAlsSUghMFianwcoij2MBMJ418EEFGZqPPUT6PRAw-RBcSbCMfkVkkJtlNwftB0gLSX2w3S9wM085iEmUJIbWU8NE4YYIjGwXHWK8gA */
+  /** @xstate-layout N4IgpgJg5mDOIC5QTANwJYGMwDpMHsA7QsTAF3UKgGIIjdLV8BrXFDbPIk8yqBRvkwBDCkQDaABgC6U6YlAAHfLHRjCCkAA9EAZl2ScAdgCMkkwCZ9ugCwBWCwE4AHDYA0IAJ6JLRnM4A2SV1nXQC7AJtHRztnAF84j3YsXAJiUgoqajAAJxz8HJxFABtRADMCgFscZM40nkz+QRF1OTlNZVV1TR0EfUNTcyt9eydXD28EezscGwsTIwDHIwsbAItJIwSktBScHLAyHM8+ai1YMlFcYTKyXIAKM0lJAEpaXc4Do5OqdqQQTpqdBEHp6AzGMyWayjFzuLyIGzmWaxAxGUwWIwhOzbEC1XBfY6nc6XO44G53HKPZ6vd4cfGHQm-Ezyf6A7r-XrOTHGCK6BzhJYBRYTBFmfwWOw2GwmZwY6WhHF4or5bCwVRZOgkHCCVg1D64RQquDqpqEJgtYGENoyDoqIEgjmILm6HkBPkWAWOIUBEUIExi2UmALhWz6Ry6CzxRK4-XKoTG065fKFErlKp6ulx1UmgRmoSiS3WllKO3s0Cc7lGXn8iJe4Xwv2RYzOBzBOxo4a6RWxsrCdDFSDUSrCQgAV2ExQASgzPH8S11LaCENEAjhJO2TC4jOHzPZfW6bDhdOjdDKsZJAt3M73+4ODrBDnOAaXF47l1KeevJDZnK4vY5fVWRwcEcOYAhbINXCibEcUIfAUHgf48VtBcHXLRAAFofQbLCrz2eoMj4FD7Q0N85l9ExbH8YIbFsNZgkojE8M+GciNZF80O0RBIhmSJFgMYJHAsYS7F9RFgI2dsjG-ZxwwsZiDSNNU2PnEilzsFwQMCREVjdaT60mTSROiIxQmlZ4hQUrhKhKQ4wGIssuL9INDBsUzt1CII7HdX1nBMHAZRWbdW2iWiox2a8+wHCAHNfdDnKCWZ3JcMJ1x8hsJWcHAIm8oUW3E+YuwSOIgA */
   id: "device",
 
   initial: "connecting",
@@ -89,9 +93,14 @@ export const deviceMachine = setup({
       on: {
         manualRetry: {
           target: "connecting",
-          reenter: true
-        }
-      }
-    }
+          reenter: true,
+        },
+        reset: {
+          target: "connecting",
+          reenter: true,
+          actions: "resetRetryCount",
+        },
+      },
+    },
   },
 });
