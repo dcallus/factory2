@@ -7,89 +7,98 @@ import { processingActor } from "../utils/fakeProcessing";
 /** To view FlowChart: Click `Open Visual Editor` Below in VSCode
  *  Or Ctrl + Shift + P > XSTATE: Open Visual Editor  */
 export const deviceMachine = setup({
+  types: {
+    context: {} as {
+      deviceId: string;
+      retryCount: number;
+      maxRetries: number;
+    },
+    input: {} as { deviceId: string },
+    events: {} as { type: 'manualRetry' } | { type: 'reset' }
+  },
+
+  
   actors: {
     connectActor,
-    processingActor,
+    processingActor
   },
-
+  
   actions: {
     incrementRetryCount: assign({
-      retryCount: ({ context }) => context.retryCount + 1,
+      retryCount: ({ context }) => context.retryCount + 1
     }),
-
+    
     resetRetryCount: assign({
-      retryCount: 0,
+      retryCount: 0
     }),
-
-    logComplete: ({ context }) =>
+    
+    logComplete: ({ context }) => 
       console.log(`🏁 Device ${context.deviceId} completed successfully!`),
-
-    logFailed: ({ context }) =>
-      console.log(`💀 [${context.deviceId}] Failed to connect`),
+    
+    logFailed: ({ context }) => 
+      console.log(`💀 [${context.deviceId}] Failed to connect`)
   },
-
+  
   guards: {
-    canRetry: ({ context }) => context.retryCount < context.maxRetries,
-  },
+    canRetry: ({ context }) => context.retryCount < context.maxRetries
+  }
 }).createMachine({
-  /** @xstate-layout N4IgpgJg5mDOIC5QTANwJYGMwDpMHsA7QsTAF3UKgGIIjdLV8BrXFDbPIk8yqBRvkwBDCkQDaABgC6U6YlAAHfLHRjCCkAA9EAZl2ScAdgCMkkwCZ9ugCwBWCwE4AHDYA0IAJ6JLRnM4A2SV1nXQC7AJtHRztnAF84j3YsXAJiUgoqajAAJxz8HJxFABtRADMCgFscZM40nkz+QRF1OTlNZVV1TR0EfUNTcyt9eydXD28EezscGwsTIwDHIwsbAItJIwSktBScHLAyHM8+ai1YMlFcYTKyXIAKM0lJAEpaXc4Do5OqdqQQTpqdBEHp6AzGMyWayjFzuLyIGzmWaxAxGUwWIwhOzbEC1XBfY6nc6XO44G53HKPZ6vd4cfGHQm-Ezyf6A7r-XrOTHGCK6BzhJYBRYTBFmfwWOw2GwmZwY6WhHF4or5bCwVRZOgkHCCVg1D64RQquDqpqEJgtYGENoyDoqIEgjmILm6HkBPkWAWOIUBEUIExi2UmALhWz6Ry6CzxRK4-XKoTG065fKFErlKp6ulx1UmgRmoSiS3WllKO3s0Cc7lGXn8iJe4Xwv2RYzOBzBOxo4a6RWxsrCdDFSDUSrCQgAV2ExQASgzPH8S11LaCENEAjhJO2TC4jOHzPZfW6bDhdOjdDKsZJAt3M73+4ODrBDnOAaXF47l1KeevJDZnK4vY5fVWRwcEcOYAhbINXCibEcUIfAUHgf48VtBcHXLRAAFofQbLCrz2eoMj4FD7Q0N85l9ExbH8YIbFsNZgkojE8M+GciNZF80O0RBIhmSJFgMYJHAsYS7F9RFgI2dsjG-ZxwwsZiDSNNU2PnEilzsFwQMCREVjdaT60mTSROiIxQmlZ4hQUrhKhKQ4wGIssuL9INDBsUzt1CII7HdX1nBMHAZRWbdW2iWiox2a8+wHCAHNfdDnKCWZ3JcMJ1x8hsJWcHAIm8oUW3E+YuwSOIgA */
-  id: "device",
+  id: 'device',
 
-  initial: "connecting",
+  initial: 'connecting',
 
-  context: {
-    deviceId: "device-001",
+  context: ({ input }) => ({
+    deviceId: input?.deviceId ?? '',
     retryCount: 0,
-    maxRetries: 3, // 3 retries = 4 total attempts (1 initial + 3 retries)
-  },
+    maxRetries: 3  // 3 retries = 4 total attempts (1 initial + 3 retries)
+  }),
 
   states: {
     connecting: {
       invoke: {
-        src: "connectActor",
+        src: 'connectActor',
         input: ({ context }) => context.deviceId,
-
+        
         onDone: {
-          target: "processing",
+          target: 'processing'
         },
-
+        
         onError: {
-          target: "retrying",
-          actions: "incrementRetryCount",
-        },
-      },
+          target: 'retrying',
+          actions: 'incrementRetryCount'
+        }
+      }
     },
 
     retrying: {
       after: {
         1000: [
           {
-            target: "connecting",
-            guard: "canRetry",
+            target: 'connecting',
+            guard: 'canRetry'
           },
           {
-            target: "failed",
-          },
-        ],
-      },
+            target: 'failed'
+          }
+        ]
+      }
     },
 
     processing: {
       invoke: {
-        src: "processingActor",
+        src: 'processingActor',
         input: ({ context }) => context.deviceId,
-        onDone: { target: "complete" },
-        onError: { target: "failed" },
-      },
+        onDone: { target: 'complete' },
+        onError: { target: 'failed' }
+      }
     },
 
     complete: {
-      entry: "logComplete",
+      entry: 'logComplete'
     },
 
     failed: {
-      entry: "logFailed",
-
+      entry: 'logFailed',
       on: {
         manualRetry: {
           target: "connecting",

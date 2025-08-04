@@ -1,11 +1,11 @@
 import express from 'express';
-import { initSingleDevice } from './machines/initDeviceActors';
+import { initDeviceActors } from './machines/initDeviceActors';
 
 const app = express();
 const port = 3000;
 
 // Create single device actor
-const deviceActor = initSingleDevice();
+const deviceActor = initDeviceActors();
 
 app.use(express.json());
 
