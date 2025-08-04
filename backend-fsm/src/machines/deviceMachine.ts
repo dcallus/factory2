@@ -22,7 +22,7 @@ export const deviceMachine = createMachine({
   context: {
     deviceId: 'device-001',
     retryCount: 0,
-    maxRetries: 3
+    maxRetries: 3  // 3 retries = 4 total attempts (1 initial + 3 retries)
   },
 
   states: {
@@ -72,7 +72,7 @@ export const deviceMachine = createMachine({
     },
 
     failed: {
-      entry: ({ context }) => console.log(`💀 Device ${context.deviceId} failed after ${context.retryCount} attempts`)
+      entry: ({ context }) => console.log(`💀 [${context.deviceId}] Failed to connect`)
     }
   }
 });

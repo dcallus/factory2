@@ -8,12 +8,16 @@ export function initSingleDevice() {
     const { deviceId, retryCount, maxRetries } = state.context;
     
     if (state.value === 'connecting') {
-      console.log(`🔄 [${deviceId}] Connecting... (attempt ${retryCount + 1}/${maxRetries})`);
+      if (retryCount === 0) {
+        console.log(`🔄 [${deviceId}] Connecting...`);
+      } else {
+        console.log(`🔄 [${deviceId}] Retry ${retryCount}/${maxRetries}`);
+      }
     } else if (state.value === 'retrying') {
-      console.log(`❌ [${deviceId}] Attempt ${retryCount} failed, retrying...`);
+      console.log(`❌ [${deviceId}] Failed, retrying...`);
     }
   });
 
   actor.start();
-  return actor; 
+  return actor;
 }
