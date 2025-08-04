@@ -1,4 +1,4 @@
-import { createMachine, assign } from 'xstate';
+import { setup, assign } from 'xstate';
 import { connectActor } from '../utils/fakeConnect';
 import { processingActor } from '../utils/fakeProcessing';
 
@@ -10,12 +10,34 @@ type DeviceContext = {
 };
 
 /* ──────────────── Device Machine ──────────────── */
-export const deviceMachine = createMachine({
-  id: 'device',
-  
+export const deviceMachine = setup({
   types: {
     context: {} as DeviceContext
   },
+  
+  actors: {
+    connectActor,
+    processingActor
+  },
+  
+  actions: {
+    incrementRetryCount: assign({
+      retryCount: ({ context }) => context.retryCount + 1
+    }),
+    
+    logComplete: ({ context }) => 
+      console.log(`🏁 Device ${context.deviceId} completed successfully!`),
+    
+    logFailed: ({ context }) => 
+      console.log(`💀 [${context.deviceId}] Failed to connect`)
+  },
+  
+  guards: {
+    canRetry: ({ context }) => context.retryCount < context.maxRetries
+  }
+}).createMachine({
+  /** @xstate-layout N4IgpgJg5mDOIC5QTANwJYGMwDpMHsA7QsTAF3UKgGIIjdLV8BrXFDbPIk8yqBRvkwBDCkQDaABgC6U6YlAAHfLHRjCCkAA9EAJgDsARhxHJugBwA2QwBZz5mwE5HAVgA0IAJ6JDAZkc4lpJmLrqONi761r4uAL6xHuxYuATEpBRU1GAATtn42TiKADaiAGb5ALY4SZypPBn8giLqcnKayqrqmjoIBsamFtZ2Ds7uXnq+xja+5vqOho5D+pK28YloyTjZYGTZnnzUWrBkorjCpWQ5ABSGwZIAlLQbnNu7+1RtSCAdauhE3XojCZboNbPYnK4PN4EIYHDgbPp9OZIpIgoZlqE1iAarhXnsDkcTpccOdLtkbndHjitjt8R9DPIvj8ul8evpJoEbJZdC5FrcbLpDGNoboETgXJJfEjLPonH1zLosdTFHlsLBVJk6CQcIJWNVnrgVUI4BrGoQmM0-oRWjJ2ipfv9WYh2cZLFyeXzJAKhVCfJIXCZHL5JPoDLNLLMuUqDYVVSaDjk8gVimVKvqOIa4+q+AJzUJRFabYylPaWaA2Ry3dzedYvYLhT5QiYXDZglF7I5ZoZ4gkQIR8Ch4F8cXbOlaAQgALSWX1TyzRjNcNK8Kijh0aJ0IAWz3T+nBB5ZmRwhuY2GwLzZ495QNdl7SIFxS-ezL3c2azFzmHdcnC6KXmXxuUmUUWwvTgjTVU1b3HTcIRwfwvWCSIDEcAxZ0MPx91CU9eTCR8QzAlJ8AqYodjAaDHXLRBFkseDLGDFxrFCSRkS-cYEHMYxYVDOYFQA0Uo17alSmEdAikgCiNyohAaLohimN3VidxDHArFQ1tJmcV9fB7WIgA */
+  id: 'device',
 
   initial: 'connecting',
 
@@ -28,7 +50,7 @@ export const deviceMachine = createMachine({
   states: {
     connecting: {
       invoke: {
-        src: connectActor,
+        src: 'connectActor',
         input: ({ context }) => context.deviceId,
         
         onDone: {
@@ -37,9 +59,7 @@ export const deviceMachine = createMachine({
         
         onError: {
           target: 'retrying',
-          actions: assign({
-            retryCount: ({ context }) => context.retryCount + 1
-          })
+          actions: 'incrementRetryCount'
         }
       }
     },
@@ -49,7 +69,7 @@ export const deviceMachine = createMachine({
         1000: [
           {
             target: 'connecting',
-            guard: ({ context }) => context.retryCount < context.maxRetries
+            guard: 'canRetry'
           },
           {
             target: 'failed'
@@ -60,19 +80,19 @@ export const deviceMachine = createMachine({
 
     processing: {
       invoke: {
-        src: processingActor,
+        src: 'processingActor',
         input: ({ context }) => context.deviceId,
         onDone: { target: 'complete' },
         onError: { target: 'failed' }
       }
-    },
+    }, 
 
     complete: {
-      entry: ({ context }) => console.log(`🏁 Device ${context.deviceId} completed successfully!`)
+      entry: 'logComplete'
     },
 
     failed: {
-      entry: ({ context }) => console.log(`💀 [${context.deviceId}] Failed to connect`)
+      entry: 'logFailed'
     }
   }
 });
