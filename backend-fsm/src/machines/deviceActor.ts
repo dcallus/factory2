@@ -1,9 +1,11 @@
 import { createActor } from 'xstate';
 import { deviceMachine } from './deviceMachine';
 
-// Creates the actor instance from the device state machine:
-// - An actor is a running, interactive instance of the machine
-// - It can receive events (via .send) and emits state updates (via .subscribe)
-// - This file only creates the actor — it does not start or listen to it
-
-export const deviceActor = createActor(deviceMachine);
+// Factory function to create device actors with specific machineIds
+// - Returns a running, interactive instance of the machine
+// - Each actor can receive events (via .send) and emits state updates (via .subscribe)
+export const createDeviceActor = (machineId: string) => {
+  return createActor(deviceMachine, {
+    input: { machineId }
+  });
+};
