@@ -1,4 +1,4 @@
-import { createMachine, fromPromise } from 'xstate';
+import { createMachine, assign, fromPromise } from 'xstate';
 
 /* ──────────────── Services ──────────────── */
 const connectService = fromPromise(async ({ input }: { input: string }) => {
@@ -22,6 +22,8 @@ const processingService = fromPromise(async ({ input }: { input: string }) => {
 /* ──────────────── Types ──────────────── */
 type DeviceContext = {
   deviceId: string;
+  retryCount: number;
+  maxRetries: number;
 };
 
 /* ──────────────── Device Machine ──────────────── */
@@ -32,37 +34,44 @@ export const deviceMachine = createMachine({
     context: {} as DeviceContext
   },
 
-  initial: 'attempt1',
+  initial: 'connecting',
 
   context: {
-    deviceId: 'device-001'
+    deviceId: 'device-001',
+    retryCount: 0,
+    maxRetries: 3
   },
 
   states: {
-    attempt1: {
+    connecting: {
       invoke: {
         src: connectService,
         input: ({ context }) => context.deviceId,
-        onDone: { target: 'processing' },
-        onError: { target: 'attempt2' }
+        
+        onDone: {
+          target: 'processing'
+        },
+        
+        onError: {
+          target: 'retrying',
+          actions: assign({
+            retryCount: ({ context }) => context.retryCount + 1
+          })
+        }
       }
     },
 
-    attempt2: {
-      invoke: {
-        src: connectService,
-        input: ({ context }) => context.deviceId,
-        onDone: { target: 'processing' },
-        onError: { target: 'attempt3' }
-      }
-    },
-
-    attempt3: {
-      invoke: {
-        src: connectService,
-        input: ({ context }) => context.deviceId,
-        onDone: { target: 'processing' },
-        onError: { target: 'failed' }
+    retrying: {
+      after: {
+        1000: [
+          {
+            target: 'connecting',
+            guard: ({ context }) => context.retryCount < context.maxRetries
+          },
+          {
+            target: 'failed'
+          }
+        ]
       }
     },
 
@@ -80,7 +89,7 @@ export const deviceMachine = createMachine({
     },
 
     failed: {
-      entry: ({ context }) => console.log(`💀 Device ${context.deviceId} failed after 3 attempts`)
+      entry: ({ context }) => console.log(`💀 Device ${context.deviceId} failed after ${context.retryCount} attempts`)
     }
   }
 });
