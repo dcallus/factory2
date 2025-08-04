@@ -1,95 +1,86 @@
-import { createMachine, assign } from 'xstate';
-import { connectActor } from '../utils/fakeConnect';
+import { createMachine, fromPromise } from 'xstate';
+
+/* ──────────────── Services ──────────────── */
+const connectService = fromPromise(async ({ input }: { input: string }) => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // 30% success rate
+  if (Math.random() < 0.3) {
+    return 'connected';
+  }
+  
+  throw new Error(`Connection failed for ${input}`);
+});
+
+const processingService = fromPromise(async ({ input }: { input: string }) => {
+  console.log(`⚙️ Starting processing on ${input}...`);
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  console.log(`✅ Processing completed on ${input}`);
+  return 'processed';
+});
 
 /* ──────────────── Types ──────────────── */
 type DeviceContext = {
-  machineId: string;
-  successfulAttempt: number;
+  deviceId: string;
 };
 
-type DeviceInput = { machineId: string };
-
-type DeviceEvents =
-  | { type: 'START' }
-  | { type: 'COMPLETE' };
-
-/* ──────────────── Machine ──────────────── */
+/* ──────────────── Device Machine ──────────────── */
 export const deviceMachine = createMachine({
   id: 'device',
-
+  
   types: {
-    context: {} as DeviceContext,
-    input: {} as DeviceInput,
-    events: {} as DeviceEvents
+    context: {} as DeviceContext
   },
 
   initial: 'attempt1',
 
-  context: ({ input }) => ({
-    machineId: input.machineId,
-    successfulAttempt: 0 // Will be set when connection succeeds
-  }),
+  context: {
+    deviceId: 'device-001'
+  },
 
   states: {
-    /* First attempt */
     attempt1: {
       invoke: {
-        src: connectActor,
-        input: ({ context }) => context.machineId,
-        onDone: { 
-          target: 'idle',
-          actions: assign({ successfulAttempt: 1 })
-        },
+        src: connectService,
+        input: ({ context }) => context.deviceId,
+        onDone: { target: 'processing' },
         onError: { target: 'attempt2' }
       }
     },
 
-    /* Second attempt */
     attempt2: {
       invoke: {
-        src: connectActor,
-        input: ({ context }) => context.machineId,
-        onDone: { 
-          target: 'idle',
-          actions: assign({ successfulAttempt: 2 })
-        },
+        src: connectService,
+        input: ({ context }) => context.deviceId,
+        onDone: { target: 'processing' },
         onError: { target: 'attempt3' }
       }
     },
 
-    /* Third attempt */
     attempt3: {
       invoke: {
-        src: connectActor,
-        input: ({ context }) => context.machineId,
-        onDone: { 
-          target: 'idle',
-          actions: assign({ successfulAttempt: 3 })
-        },
-        onError: { target: 'error' }
+        src: connectService,
+        input: ({ context }) => context.deviceId,
+        onDone: { target: 'processing' },
+        onError: { target: 'failed' }
       }
     },
 
-    /* Success - connected */
-    idle: {
-      on: { 
-        START: 'running' 
-      }
-    },
-
-    running: {
-      on: { 
-        COMPLETE: 'complete' 
+    processing: {
+      invoke: {
+        src: processingService,
+        input: ({ context }) => context.deviceId,
+        onDone: { target: 'complete' },
+        onError: { target: 'failed' }
       }
     },
 
     complete: {
-      type: 'final'
+      entry: ({ context }) => console.log(`🏁 Device ${context.deviceId} completed successfully!`)
     },
 
-    /* Failed all attempts */
-    error: {
-      // Terminal error state
+    failed: {
+      entry: ({ context }) => console.log(`💀 Device ${context.deviceId} failed after 3 attempts`)
     }
   }
 });

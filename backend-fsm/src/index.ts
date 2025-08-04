@@ -1,23 +1,37 @@
-// Entry point: starts Express server and all device actors
-
 import express from 'express';
-import { layoutConfig } from '../../config/layout.config';
-import { initDeviceActors } from './machines/initDeviceActors';
+import { initSingleDevice } from './machines/initDeviceActors';
 
 const app = express();
 const port = 3000;
 
-// Create device actors and store them by ID
-const deviceActorMap = initDeviceActors();
+// Create single device actor
+const deviceActor = initSingleDevice();
 
 app.use(express.json());
 
 // Health check
 app.get('/', (_req, res) => {
-	res.send('Backend is running');
+  const state = deviceActor.getSnapshot();
+  res.json({
+    message: 'Backend is running',
+    deviceState: state.value,
+    deviceContext: state.context
+  });
+});
+
+// Manual retry endpoint
+app.post('/retry', (_req, res) => {
+  deviceActor.send({ type: 'RETRY' });
+  res.json({ message: 'Retry sent' });
+});
+
+// Reset endpoint  
+app.post('/reset', (_req, res) => {
+  deviceActor.send({ type: 'RESET' });
+  res.json({ message: 'Reset sent' });
 });
 
 // Server startup
 app.listen(port, () => {
-	console.log(`🚀 Server running on http://localhost:${port}`);
+  console.log(`🚀 Server running on http://localhost:${port}`);
 });
