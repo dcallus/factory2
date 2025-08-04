@@ -2,18 +2,8 @@ import { setup, assign } from 'xstate';
 import { connectActor } from '../utils/fakeConnect';
 import { processingActor } from '../utils/fakeProcessing';
 
-/* ──────────────── Types ──────────────── */
-type DeviceContext = {
-  deviceId: string;
-  retryCount: number;
-  maxRetries: number;
-};
-
 /* ──────────────── Device Machine ──────────────── */
 export const deviceMachine = setup({
-  types: {
-    context: {} as DeviceContext
-  },
   
   actors: {
     connectActor,
@@ -36,7 +26,8 @@ export const deviceMachine = setup({
     canRetry: ({ context }) => context.retryCount < context.maxRetries
   }
 }).createMachine({
-  /** @xstate-layout N4IgpgJg5mDOIC5QTANwJYGMwDpMHsA7QsTAF3UKgGIIjdLV8BrXFDbPIk8yqBRvkwBDCkQDaABgC6U6YlAAHfLHRjCCkAA9EAJgDsARhxHJugBwA2QwBZz5mwE5HAVgA0IAJ6JDAZkc4lpJmLrqONi761r4uAL6xHuxYuATEpBRU1GAATtn42TiKADaiAGb5ALY4SZypPBn8giLqcnKayqrqmjoIBsamFtZ2Ds7uXnq+xja+5vqOho5D+pK28YloyTjZYGTZnnzUWrBkorjCpWQ5ABSGwZIAlLQbnNu7+1RtSCAdauhE3XojCZboNbPYnK4PN4EIYHDgbPp9OZIpIgoZlqE1iAarhXnsDkcTpccOdLtkbndHjitjt8R9DPIvj8ul8evpJoEbJZdC5FrcbLpDGNoboETgXJJfEjLPonH1zLosdTFHlsLBVJk6CQcIJWNVnrgVUI4BrGoQmM0-oRWjJ2ipfv9WYh2cZLFyeXzJAKhVCfJIXCZHL5JPoDLNLLMuUqDYVVSaDjk8gVimVKvqOIa4+q+AJzUJRFabYylPaWaA2Ry3dzedYvYLhT5QiYXDZglF7I5ZoZ4gkQIR8Ch4F8cXbOlaAQgALSWX1TyzRjNcNK8Kijh0aJ0IAWz3T+nBB5ZmRwhuY2GwLzZ495QNdl7SIFxS-ezL3c2azFzmHdcnC6KXmXxuUmUUWwvTgjTVU1b3HTcIRwfwvWCSIDEcAxZ0MPx91CU9eTCR8QzAlJ8AqYodjAaDHXLRBFkseDLGDFxrFCSRkS-cYEHMYxYVDOYFQA0Uo17alSmEdAikgCiNyohAaLohimN3VidxDHArFQ1tJmcV9fB7WIgA */
+  /** in VSCODE click here THEN Ctrl + Shift + P THEN Choose XSTATE: Open Visual Editor  */
+  /** @xstate-layout N4IgpgJg5mDOIC5QTANwJYGMwDpMHsA7QsTAF3UKgGIIjdLV8BrXFDbPIk8yqBRvkwBDCkQDaABgC6U6YlAAHfLHRjCCkAA9EAJgDsARhxHJugJySAbId0AWAByGAzHYA0IAJ6IXDnAFZ-Bxt-SUN9c2DdBwBfGI92LFwCYlIKKmowACcs-CycRQAbUQAzPIBbHETOFJ50-kERdTk5TWVVdU0dBANjUwtrW0cXdy89Z10cR0k7Kwd9XVdzV2c4hLQknCywMizPPmotWDJRXGESsmyACkNJO4BKWg3Obd39qlakEHa1dCIuvRGEy3AY2exOVwebwIQwOfwBQzmfx2WH6ST6ZyRKxrEDVXCvPYHI4nS44c6XLI3O6SR54rY7QkfQzyL4-TpfboY4xWWbOQy3ZxmOz+cxQvR2cwBeaGfy6AxWXT8ww4umKXLYWCqDJ0Eg4QSsKrPXBqoRwLUNQhMJp-QgtGRtFS-f4cxBcnA8qx8gVCkVimGSeERQUOYXmBaSZyylVGgrqs0HbK5fJFUoVQ0cY1xzV8ASWoSiG12llKR3s0Ccvnu3n8iM+0VjGGykzImaScwuML6YJxeIgQj4FDwL54h0dG0AhAAWisfsn8PMC8XS6Xq17dNqaT4o6dGhdCDsuj9ukkfjMEf8fNc8wcM2jGfpby3rNL473F-0OEiaP0RkMnuCM4NuCOATLYhh2CeTh2Hy+h3psJoaua25ltoiASpKmIzJGIp-vo0F+vyzifrKN7oiKuhzCicE1Pg5RFDsYDIa+5aIOYVhWCBnrhD+B5WEYfpODgqIWCGCp8p65jUbgJTCOghSQExzosQgbEcc4XE-nhFH8UBbbEboIrscKJEhj2MRAA */
   id: 'device',
 
   initial: 'connecting',
